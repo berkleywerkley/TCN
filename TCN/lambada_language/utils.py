@@ -13,18 +13,19 @@ it is the number of segments to speed up computation.
 The goal of PTB is to train a language model to predict the next word.
 """
 
+
 def data_generator(args):
     if os.path.exists(args.data + "/corpus") and not args.corpus:
-        corpus = pickle.load(open(args.data + '/corpus', 'rb'))
+        corpus = pickle.load(open(args.data + "/corpus", "rb"))
     else:
         print("Creating Corpus...")
         corpus = Corpus(args.data + "/lambada_vocabulary_sorted.txt", args.data)
-        pickle.dump(corpus, open(args.data + '/corpus', 'wb'))
+        pickle.dump(corpus, open(args.data + "/corpus", "wb"))
 
     eval_batch_size = 1
     train_data = batchify(corpus.train, args.batch_size, args)
-    val_data = [[0] * (args.seq_len-len(line)) + line for line in corpus.valid]
-    test_data = [[0] * (args.seq_len-len(line)) + line for line in corpus.test]
+    val_data = [[0] * (args.seq_len - len(line)) + line for line in corpus.valid]
+    test_data = [[0] * (args.seq_len - len(line)) + line for line in corpus.test]
     return train_data, val_data, test_data, corpus
 
 
@@ -47,15 +48,19 @@ class Corpus(object):
     def __init__(self, dict_path, path):
         self.dictionary = Dictionary()
         self.prep_dict(dict_path)
-        self.train = torch.LongTensor(self.tokenize(os.path.join(path, 'train-novels')))
-        self.valid = self.tokenize(os.path.join(path, 'lambada_development_plain_text.txt'), eval=True)
-        self.test = self.tokenize(os.path.join(path, 'lambada_test_plain_text.txt'), eval=True)
+        self.train = torch.LongTensor(self.tokenize(os.path.join(path, "train-novels")))
+        self.valid = self.tokenize(
+            os.path.join(path, "lambada_development_plain_text.txt"), eval=True
+        )
+        self.test = self.tokenize(
+            os.path.join(path, "lambada_test_plain_text.txt"), eval=True
+        )
 
     def prep_dict(self, dict_path):
         assert os.path.exists(dict_path)
 
         # Add words to the dictionary
-        with open(dict_path, 'r') as f:
+        with open(dict_path, "r") as f:
             tokens = 0
             for line in f:
                 word = line.strip()
@@ -74,13 +79,15 @@ class Corpus(object):
         ids = []
         token = 0
         misses = 0
-        if not path.endswith(".txt"):   # it's a folder
+        if not path.endswith(".txt"):  # it's a folder
             for subdir in os.listdir(path):
                 for filename in os.listdir(path + "/" + subdir):
                     if filename.endswith(".txt"):
                         full_path = "{0}/{1}/{2}".format(path, subdir, filename)
                         # Tokenize file content
-                        delta_ids, delta_token, delta_miss = self._tokenize_file(full_path, eval=eval)
+                        delta_ids, delta_token, delta_miss = self._tokenize_file(
+                            full_path, eval=eval
+                        )
                         ids += delta_ids
                         token += delta_token
                         misses += delta_miss
@@ -91,13 +98,13 @@ class Corpus(object):
         return ids
 
     def _tokenize_file(self, path, eval=False):
-        with open(path, 'r') as f:
+        with open(path, "r") as f:
             token = 0
             ids = []
             misses = 0
             for line in f:
                 line_ids = []
-                words = line.strip().split() + ['<eos>']
+                words = line.strip().split() + ["<eos>"]
                 if eval:
                     words = words[:-1]
                 for word in words:
@@ -113,7 +120,7 @@ class Corpus(object):
                     elif word == "wo":
                         word = "will"
                     if word not in self.dictionary.word2idx:
-                        word = re.sub(r'[^\w\s]', '', word)
+                        word = re.sub(r"[^\w\s]", "", word)
                     if word not in self.dictionary.word2idx:
                         misses += 1
                         continue
@@ -142,6 +149,8 @@ def batchify(data, batch_size, args):
 
 def get_batch(source, i, args, seq_len=None, evaluation=False):
     seq_len = min(seq_len if seq_len else args.seq_len, source.size(1) - 1 - i)
-    data = Variable(source[:, i:i+seq_len], volatile=evaluation)
-    target = Variable(source[:, i+1:i+1+seq_len])  # CAUTION: This is un-flattened!
+    data = Variable(source[:, i : i + seq_len], volatile=evaluation)
+    target = Variable(
+        source[:, i + 1 : i + 1 + seq_len]
+    )  # CAUTION: This is un-flattened!
     return data, target

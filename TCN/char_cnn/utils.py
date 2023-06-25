@@ -11,7 +11,7 @@ cuda = torch.cuda.is_available()
 
 
 def data_generator(args):
-    file, testfile, valfile = getattr(observations, args.dataset)('data/')
+    file, testfile, valfile = getattr(observations, args.dataset)("data/")
     file_len = len(file)
     valfile_len = len(valfile)
     testfile_len = len(testfile)
@@ -87,13 +87,13 @@ def get_batch(source, start_index, args):
     seq_len = min(args.seq_len, source.size(1) - 1 - start_index)
     end_index = start_index + seq_len
     inp = source[:, start_index:end_index].contiguous()
-    target = source[:, start_index+1:end_index+1].contiguous()  # The successors of the inp.
+    target = source[
+        :, start_index + 1 : end_index + 1
+    ].contiguous()  # The successors of the inp.
     return inp, target
 
 
 def save(model):
-    save_filename = 'model.pt'
+    save_filename = "model.pt"
     torch.save(model, save_filename)
-    print('Saved as %s' % save_filename)
-
-
+    print("Saved as %s" % save_filename)

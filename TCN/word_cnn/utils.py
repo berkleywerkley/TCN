@@ -14,10 +14,10 @@ The goal of PTB is to train a language model to predict the next word.
 
 def data_generator(args):
     if os.path.exists(args.data + "/corpus") and not args.corpus:
-        corpus = pickle.load(open(args.data + '/corpus', 'rb'))
+        corpus = pickle.load(open(args.data + "/corpus", "rb"))
     else:
         corpus = Corpus(args.data)
-        pickle.dump(corpus, open(args.data + '/corpus', 'wb'))
+        pickle.dump(corpus, open(args.data + "/corpus", "wb"))
     return corpus
 
 
@@ -39,28 +39,28 @@ class Dictionary(object):
 class Corpus(object):
     def __init__(self, path):
         self.dictionary = Dictionary()
-        self.train = self.tokenize(os.path.join(path, 'train.txt'))
-        self.valid = self.tokenize(os.path.join(path, 'valid.txt'))
-        self.test = self.tokenize(os.path.join(path, 'test.txt'))
+        self.train = self.tokenize(os.path.join(path, "train.txt"))
+        self.valid = self.tokenize(os.path.join(path, "valid.txt"))
+        self.test = self.tokenize(os.path.join(path, "test.txt"))
 
     def tokenize(self, path):
         """Tokenizes a text file."""
         assert os.path.exists(path)
         # Add words to the dictionary
-        with open(path, 'r') as f:
+        with open(path, "r") as f:
             tokens = 0
             for line in f:
-                words = line.split() + ['<eos>']
+                words = line.split() + ["<eos>"]
                 tokens += len(words)
                 for word in words:
                     self.dictionary.add_word(word)
 
         # Tokenize file content
-        with open(path, 'r') as f:
+        with open(path, "r") as f:
             ids = torch.LongTensor(tokens)
             token = 0
             for line in f:
-                words = line.split() + ['<eos>']
+                words = line.split() + ["<eos>"]
                 for word in words:
                     ids[token] = self.dictionary.word2idx[word]
                     token += 1
@@ -83,6 +83,8 @@ def batchify(data, batch_size, args):
 
 def get_batch(source, i, args, seq_len=None, evaluation=False):
     seq_len = min(seq_len if seq_len else args.seq_len, source.size(1) - 1 - i)
-    data = Variable(source[:, i:i+seq_len], volatile=evaluation)
-    target = Variable(source[:, i+1:i+1+seq_len])     # CAUTION: This is un-flattened!
+    data = Variable(source[:, i : i + seq_len], volatile=evaluation)
+    target = Variable(
+        source[:, i + 1 : i + 1 + seq_len]
+    )  # CAUTION: This is un-flattened!
     return data, target
